@@ -2,10 +2,10 @@ import os
 
 import streamlit as st
 import tiktoken
-from langchain import PromptTemplate
 from langchain.chains import RetrievalQA
 from langchain.chat_models import AzureChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.prompts import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 
@@ -16,6 +16,7 @@ os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 os.environ["OPENAI_API_VERSION"] = st.secrets["OPENAI_API_VERSION"]
 os.environ["DEPLOYMENT_NAME"] = st.secrets["DEPLOYMENT_NAME"]
 os.environ["EMBEDDING_NAME"] = st.secrets["EMBEDDING_NAME"]
+
 
 def ask_and_get_answer(vector_store, q, k=3):
     """Ask a question and return the answer"""
@@ -101,8 +102,6 @@ def chunk_data(data, chunk_size=256, chunk_overlap=20):
     return chunks
 
 
-
-
 def calculate_embedding_cost(texts):
     """Calculate embedding cost using tiktoken"""
 
@@ -131,7 +130,7 @@ if __name__ == "__main__":
         # OPENAI_API_BASE = st.text_input("OPENAI_API_BASE", type="password")
         # if OPENAI_API_BASE:
         #     os.environ["OPENAI_API_BASE"] = OPENAI_API_BASE
-        
+
         # OPENAI_API_KEY = st.text_input("OPENAI_API_KEY", type="password")
         # if OPENAI_API_KEY:
         #     os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
