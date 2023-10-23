@@ -130,9 +130,11 @@ if __name__ == "__main__":
         #     os.environ["OPENAI_API_KEY"] = api_key
 
         # show the environment variables
-        st.write("DB username:", os.environ["OPENAI_API_TYPE"])
-        st.write("DB password:", os.environ["OPENAI_API_BASE"])
-        st.write("My cool secrets:", os.environ["OPENAI_API_KEY"])
+        st.write("OPENAI_API_TYPE:", os.environ["OPENAI_API_TYPE"])
+        st.write("OPENAI_API_BASE:", os.environ["OPENAI_API_BASE"])
+        st.write("OPENAI_API_KEY:", os.environ["OPENAI_API_KEY"])
+        st.write("OPENAI_API_VERSION:", os.environ["OPENAI_API_VERSION"])
+        st.write("DEPLOYMENT_NAME:", os.environ["DEPLOYMENT_NAME"])
 
         # file uploader widget
         uploaded_file = st.file_uploader("Upload a file:", type=["pdf", "docx", "txt"])
