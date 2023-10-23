@@ -10,11 +10,11 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 
 # loading from streamlit secrets
-os.environ["OPENAI_API_TYPE"] = st.secrets["OPENAI_API_TYPE"]
-os.environ["OPENAI_API_BASE"] = st.secrets["OPENAI_API_BASE"]
-os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
-os.environ["OPENAI_API_VERSION"] = st.secrets["OPENAI_API_VERSION"]
-os.environ["DEPLOYMENT_NAME"] = st.secrets["DEPLOYMENT_NAME"]
+# os.environ["OPENAI_API_TYPE"] = st.secrets["OPENAI_API_TYPE"]
+# os.environ["OPENAI_API_BASE"] = st.secrets["OPENAI_API_BASE"]
+# os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+# os.environ["OPENAI_API_VERSION"] = st.secrets["OPENAI_API_VERSION"]
+# os.environ["DEPLOYMENT_NAME"] = st.secrets["DEPLOYMENT_NAME"]
 
 
 def ask_and_get_answer(vector_store, q, k=3):
@@ -32,10 +32,10 @@ def ask_and_get_answer(vector_store, q, k=3):
     llm = AzureChatOpenAI(
         client=None,
         # deployment_name="gpt-35-turbo",
-        openai_api_type=os.environ["OPENAI_API_TYPE"],
+        openai_api_type="azure",
         openai_api_base=os.environ["OPENAI_API_BASE"],
         openai_api_key=os.environ["OPENAI_API_KEY"],
-        openai_api_version=os.environ["OPENAI_API_VERSION"],
+        openai_api_version="2023-07-01-preview",
         deployment_name=os.environ["DEPLOYMENT_NAME"],
         temperature=1,
         request_timeout=180,
@@ -126,15 +126,23 @@ if __name__ == "__main__":
     st.subheader("ChatGPT with Documents 🤖")
     with st.sidebar:
         # text_input for the OpenAI API key (alternative to python-dotenv and .env)
-        # api_key = st.text_input("OpenAI API Key:", type="password")
-        # if api_key:
-        #     os.environ["OPENAI_API_KEY"] = api_key
+        OPENAI_API_BASE = st.text_input("OPENAI_API_BASE", type="password")
+        if OPENAI_API_BASE:
+            os.environ["OPENAI_API_BASE"] = OPENAI_API_BASE
+        
+        OPENAI_API_KEY = st.text_input("OPENAI_API_KEY", type="password")
+        if OPENAI_API_KEY:
+            os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+
+        DEPLOYMENT_NAME = st.text_input("DEPLOYMENT_NAME", type="password")
+        if DEPLOYMENT_NAME:
+            os.environ["DEPLOYMENT_NAME"] = DEPLOYMENT_NAME
 
         # show the environment variables
-        st.write("OPENAI_API_TYPE:", os.environ["OPENAI_API_TYPE"])
+        # st.write("OPENAI_API_TYPE:", os.environ["OPENAI_API_TYPE"])
         st.write("OPENAI_API_BASE:", os.environ["OPENAI_API_BASE"])
         st.write("OPENAI_API_KEY:", os.environ["OPENAI_API_KEY"])
-        st.write("OPENAI_API_VERSION:", os.environ["OPENAI_API_VERSION"])
+        # st.write("OPENAI_API_VERSION:", os.environ["OPENAI_API_VERSION"])
         st.write("DEPLOYMENT_NAME:", os.environ["DEPLOYMENT_NAME"])
 
         # file uploader widget
