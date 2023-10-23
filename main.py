@@ -23,14 +23,12 @@ os.environ["DEPLOYMENT_NAME"] = st.secrets["DEPLOYMENT_NAME"]
 def ask_and_get_answer(vector_store, q, k=3):
     """Ask a question and return the answer"""
     template = """
-        - 指示: 君がファイナンシャルプランナー。提供されたコンテキストを参考し、カスタマーの質問を回答する。回答は詳しくしてください。注意点として、以下の制約条件をしたかう
-        - 制約条件: 回答するとき、具体的な保険会社と保険商品を推薦しない。答えがわからない場合は単に「わかりません」と発言し、無理に回答を作ろうとしない
-        - コンテキスト:
+        You are asked to answer the following question based on the context.
         ------
         {context}
         ------
-        - 入力質問: {question}
-        - 出力指示: 日本語で答えなさい
+        Question: {question}
+        Answer:
         """
     prompt = PromptTemplate(input_variables=["context", "question"], template=template)
 
