@@ -32,10 +32,11 @@ def ask_and_get_answer(vector_store, q, k=3):
     llm = AzureChatOpenAI(
         client=None,
         # deployment_name="gpt-35-turbo",
-        deployment_name=os.environ["DEPLOYMENT_NAME"],
+        openai_api_type=os.environ["OPENAI_API_TYPE"],
         openai_api_base=os.environ["OPENAI_API_BASE"],
-        openai_api_version=os.environ["OPENAI_API_VERSION"] or "",
-        openai_api_key=os.environ["OPENAI_API_KEY"] or "",
+        openai_api_key=os.environ["OPENAI_API_KEY"],
+        openai_api_version=os.environ["OPENAI_API_VERSION"],
+        deployment_name=os.environ["DEPLOYMENT_NAME"],
         temperature=1,
         request_timeout=180,
     )
