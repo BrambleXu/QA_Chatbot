@@ -16,11 +16,6 @@ os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 os.environ["OPENAI_API_VERSION"] = st.secrets["OPENAI_API_VERSION"]
 os.environ["DEPLOYMENT_NAME"] = st.secrets["DEPLOYMENT_NAME"]
 
-print(os.environ["OPENAI_API_TYPE"])
-print(os.environ["OPENAI_API_BASE"])
-print(os.environ["OPENAI_API_KEY"])
-print(os.environ["OPENAI_API_VERSION"])
-print(os.environ["DEPLOYMENT_NAME"])
 
 def ask_and_get_answer(vector_store, q, k=3):
     """Ask a question and return the answer"""
@@ -133,6 +128,11 @@ if __name__ == "__main__":
         # api_key = st.text_input("OpenAI API Key:", type="password")
         # if api_key:
         #     os.environ["OPENAI_API_KEY"] = api_key
+
+        # show the environment variables
+        st.write("DB username:", os.environ["OPENAI_API_TYPE"])
+        st.write("DB password:", os.environ["OPENAI_API_BASE"])
+        st.write("My cool secrets:", os.environ["OPENAI_API_KEY"])
 
         # file uploader widget
         uploaded_file = st.file_uploader("Upload a file:", type=["pdf", "docx", "txt"])
