@@ -2,12 +2,60 @@ import os
 
 import streamlit as st
 import tiktoken
-from dotenv import find_dotenv, load_dotenv
+from dotenv import load_dotenv
+from langchain import PromptTemplate
 from langchain.chains import RetrievalQA
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models import AzureChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
+
+# loading from streamlit
+load_dotenv()
+
+os.environ["OPENAI_API_TYPE"] = st.secrets["OPENAI_API_TYPE"]
+os.environ["OPENAI_API_BASE"] = st.secrets["OPENAI_API_BASE"]
+os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+os.environ["OPENAI_API_VERSION"] = st.secrets["OPENAI_API_VERSION"]
+os.environ["DEPLOYMENT_NAME"] = st.secrets["DEPLOYMENT_NAME"]
+
+
+def ask_and_get_answer(vector_store, q, k=3):
+    """Ask a question and return the answer"""
+    template = """
+        - 指示: 君がファイナンシャルプランナー。提供されたコンテキストを参考し、カスタマーの質問を回答する。回答は詳しくしてください。注意点として、以下の制約条件をしたかう
+        - 制約条件: 回答するとき、具体的な保険会社と保険商品を推薦しない。答えがわからない場合は単に「わかりません」と発言し、無理に回答を作ろうとしない
+        - コンテキスト:
+        ------
+        {context}
+        ------
+        - 入力質問: {question}
+        - 出力指示: 日本語で答えなさい
+        """
+    prompt = PromptTemplate(input_variables=["context", "question"], template=template)
+
+    llm = AzureChatOpenAI(
+        client=None,
+        # deployment_name="gpt-35-turbo",
+        deployment_name=os.environ["DEPLOYMENT_NAME"],
+        openai_api_base=os.environ["OPENAI_API_BASE"],
+        openai_api_version=os.environ["OPENAI_API_VERSION"] or "",
+        openai_api_key=os.environ["OPENAI_API_KEY"] or "",
+        temperature=1,
+        request_timeout=180,
+    )
+    retriever = vector_store.as_retriever(
+        search_type="similarity", search_kwargs={"k": k}
+    )
+    chain = RetrievalQA.from_chain_type(
+        llm=llm,
+        chain_type="stuff",
+        retriever=retriever,
+        chain_type_kwargs={"prompt": prompt},
+    )
+
+    answer = chain.run(q)
+    return answer
 
 
 def load_document(file):
@@ -57,20 +105,6 @@ def create_embeddings(chunks):
     return vector_store
 
 
-def ask_and_get_answer(vector_store, q, k=3):
-    """Ask a question and return the answer"""
-    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=1)
-    retriever = vector_store.as_retriever(
-        search_type="similarity", search_kwargs={"k": k}
-    )
-    chain = RetrievalQA.from_chain_type(
-        llm=llm, chain_type="stuff", retriever=retriever
-    )
-
-    answer = chain.run(q)
-    return answer
-
-
 def calculate_embedding_cost(texts):
     """Calculate embedding cost using tiktoken"""
 
@@ -89,16 +123,16 @@ def clear_history():
 
 if __name__ == "__main__":
 
-    # loading the OpenAI api key from .env
-    load_dotenv(find_dotenv(), override=True)
+    # # loading the OpenAI api key from .env
+    # load_dotenv(find_dotenv(), override=True)
 
     st.image("img.jpg")
     st.subheader("ChatGPT with Documents 🤖")
     with st.sidebar:
         # text_input for the OpenAI API key (alternative to python-dotenv and .env)
-        api_key = st.text_input("OpenAI API Key:", type="password")
-        if api_key:
-            os.environ["OPENAI_API_KEY"] = api_key
+        # api_key = st.text_input("OpenAI API Key:", type="password")
+        # if api_key:
+        #     os.environ["OPENAI_API_KEY"] = api_key
 
         # file uploader widget
         uploaded_file = st.file_uploader("Upload a file:", type=["pdf", "docx", "txt"])
