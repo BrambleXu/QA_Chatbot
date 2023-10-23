@@ -16,6 +16,11 @@ os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 os.environ["OPENAI_API_VERSION"] = st.secrets["OPENAI_API_VERSION"]
 os.environ["DEPLOYMENT_NAME"] = st.secrets["DEPLOYMENT_NAME"]
 
+print(os.environ["OPENAI_API_TYPE"])
+print(os.environ["OPENAI_API_BASE"])
+print(os.environ["OPENAI_API_KEY"])
+print(os.environ["OPENAI_API_VERSION"])
+print(os.environ["DEPLOYMENT_NAME"])
 
 def ask_and_get_answer(vector_store, q, k=3):
     """Ask a question and return the answer"""
