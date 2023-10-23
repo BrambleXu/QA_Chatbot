@@ -2,7 +2,6 @@ import os
 
 import streamlit as st
 import tiktoken
-from dotenv import load_dotenv
 from langchain import PromptTemplate
 from langchain.chains import RetrievalQA
 from langchain.chat_models import AzureChatOpenAI
@@ -10,9 +9,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 
-# loading from streamlit
-load_dotenv()
-
+# loading from streamlit secrets
 os.environ["OPENAI_API_TYPE"] = st.secrets["OPENAI_API_TYPE"]
 os.environ["OPENAI_API_BASE"] = st.secrets["OPENAI_API_BASE"]
 os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
