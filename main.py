@@ -15,7 +15,7 @@ os.environ["OPENAI_API_BASE"] = st.secrets["OPENAI_API_BASE"]
 os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 os.environ["OPENAI_API_VERSION"] = st.secrets["OPENAI_API_VERSION"]
 os.environ["DEPLOYMENT_NAME"] = st.secrets["DEPLOYMENT_NAME"]
-
+os.environ["EMBEDDING_NAME"] = st.secrets["EMBEDDING_NAME"]
 
 def ask_and_get_answer(vector_store, q, k=3):
     """Ask a question and return the answer"""
@@ -56,7 +56,7 @@ def ask_and_get_answer(vector_store, q, k=3):
 
 def create_embeddings(chunks):
     """Create embeddings and save them in a Chroma vector store"""
-    embeddings = OpenAIEmbeddings(deployment=os.environ["DEPLOYMENT_NAME"])
+    embeddings = OpenAIEmbeddings(deployment=os.environ["EMBEDDING_NAME"])
     vector_store = Chroma.from_documents(chunks, embeddings)
 
     # if you want to use a specific directory for chromadb
