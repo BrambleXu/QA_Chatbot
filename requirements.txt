@@ -5,4 +5,4 @@ pypdf==3.16.4
 streamlit==1.27.2
 tiktoken==0.5.1
 chromadb==0.4.14
-sqlite==3.41.2
+sqlite==3.35.0
