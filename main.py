@@ -1,9 +1,12 @@
+import glob
 import os
+import zipfile
 
 import streamlit as st
 import tiktoken
 from langchain.chains import RetrievalQA
 from langchain.chat_models import AzureChatOpenAI
+from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -118,10 +121,78 @@ def clear_history():
         del st.session_state["history"]
 
 
+def read_upload_file(uploaded_file):
+    """writing the file from RAM to the current directory on disk"""
+    bytes_data = uploaded_file.read()
+    file_name = os.path.join("./", uploaded_file.name)
+    with open(file_name, "wb") as f:
+        f.write(bytes_data)
+    # data = load_document(file_name)
+    with open(file_name, "r") as file:
+        file_content = file.read()
+    return file_content
+
+
+def read_plain_txt(file_name):
+    with open(file_name, "r") as file:
+        file_content = file.read()
+    return file_content
+
+
+def custom_chunk_data(file_name, file_content):
+    """Chunk data with custom delimiter
+
+    Args:
+        data (_type_): _description_
+    """
+
+    chunks_with_doc_type = []
+    chunks = file_content.split("---------------------")
+    for chunk in chunks:
+        new_doc = Document(page_content=chunk.strip(), metadata={"source": file_name})
+        chunks_with_doc_type.append(new_doc)
+    return chunks_with_doc_type
+
+
+def dump_files_to_disk(uploaded_file, context_path="./context"):
+    os.mkdir(context_path)
+    if len(uploaded_file) > 0:
+        for file in uploaded_file:
+            # If zip file, extract contents
+            if file.type == "application/zip":
+                with zipfile.ZipFile(file, "r") as z:
+                    z.extractall(context_path)
+            else:
+                bytes_data = uploaded_file.read()
+                file_name = os.path.join(context_path, uploaded_file.name)
+                with open(file_name, "wb") as f:
+                    f.write(bytes_data)
+    return context_path
+
+
+def get_chunks_with_context_data(uploaded_file):
+    directory_path = dump_files_to_disk(uploaded_file)
+    txt_files = glob.glob(f"{directory_path}/*")
+
+    chunks_with_doc_type = []
+    for txt_file in txt_files:
+        file_name = os.path.splitext(os.path.basename(txt_file))[
+            0
+        ]  # get file name without extension
+        with open(txt_file, "r") as file:
+            file_content = file.read()
+            chunked_documents = custom_chunk_data(file_name, file_content)
+            chunks_with_doc_type.extend(chunked_documents)
+
+    return chunks_with_doc_type
+
+
 if __name__ == "__main__":
 
     # # loading the OpenAI api key from .env
     # load_dotenv(find_dotenv(), override=True)
+    cs_info = ""
+    cs_lps = ""
 
     st.image("img.jpg")
     st.subheader("ChatGPT with Documents 🤖")
@@ -147,7 +218,21 @@ if __name__ == "__main__":
         # st.write("DEPLOYMENT_NAME:", os.environ["DEPLOYMENT_NAME"])
 
         # file uploader widget
-        uploaded_file = st.file_uploader("Upload a file:", type=["pdf", "docx", "txt"])
+        uploaded_file_context = st.file_uploader(
+            "Upload a zip file:",
+            type=["zip", "docx", "txt", "pdf"],
+            accept_multiple_files=True,
+        )
+
+        # file uploader widget
+        uploaded_file_cs_info = st.file_uploader(
+            "Upload a file about customer information:", type=["txt"]
+        )
+
+        # file uploader widget
+        uploaded_file_cs_lps = st.file_uploader(
+            "Upload a file about customer life plan simulation result:", type=["txt"]
+        )
 
         # chunk size number widget
         chunk_size = st.number_input(
@@ -166,17 +251,24 @@ if __name__ == "__main__":
         # add data button widget
         add_data = st.button("Add Data", on_click=clear_history)
 
-        if uploaded_file and add_data:  # if the user browsed a file
+        if uploaded_file_context and add_data:  # if the user browsed a file
             with st.spinner("Reading, chunking and embedding file ..."):
 
-                # writing the file from RAM to the current directory on disk
-                bytes_data = uploaded_file.read()
-                file_name = os.path.join("./", uploaded_file.name)
-                with open(file_name, "wb") as f:
-                    f.write(bytes_data)
+                # read txt file from uploaded file
+                if uploaded_file_cs_info and uploaded_file_cs_lps:
+                    cs_info = read_upload_file(uploaded_file_cs_info)
+                    cs_lps = read_upload_file(uploaded_file_cs_lps)
 
-                data = load_document(file_name)
-                chunks = chunk_data(data, chunk_size=chunk_size)
+                # # writing the file from RAM to the current directory on disk
+                # bytes_data = uploaded_file.read()
+                # file_name = os.path.join("./", uploaded_file.name)
+                # with open(file_name, "wb") as f:
+                #     f.write(bytes_data)
+
+                # data = load_document(file_name)
+
+                # chunks = chunk_data(data, chunk_size=chunk_size)
+                chunks = get_chunks_with_context_data(uploaded_file_context)
                 st.write(f"Chunk size: {chunk_size}, Chunks: {len(chunks)}")
 
                 tokens, embedding_cost = calculate_embedding_cost(chunks)
