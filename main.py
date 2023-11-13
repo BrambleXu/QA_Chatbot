@@ -11,9 +11,9 @@ from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma
+from langchain.globals import set_debug
 
-langchain.debug = True
+set_debug(True)
 
 # loading from streamlit secrets
 os.environ["OPENAI_API_TYPE"] = st.secrets["OPENAI_API_TYPE"]
