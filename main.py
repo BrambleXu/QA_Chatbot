@@ -287,7 +287,8 @@ def custom_chunk_data(file_name, file_content):
 
 
 def dump_files_to_disk(uploaded_file, context_path="./context"):
-    os.mkdir(context_path)
+    if not os.path.exists(context_path):
+        os.mkdir(context_path)
     if len(uploaded_file) > 0:
         for file in uploaded_file:
             # If zip file, extract contents
