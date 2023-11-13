@@ -286,31 +286,50 @@ def custom_chunk_data(file_name, file_content):
     return chunks_with_doc_type
 
 
-def dump_files_to_disk(uploaded_file, context_path="./context"):
+# def dump_files_to_disk(uploaded_file, context_path="./context"):
+#     if not os.path.exists(context_path):
+#         os.mkdir(context_path)
+#     if len(uploaded_file) > 0:
+#         for file in uploaded_file:
+#             # If zip file, extract contents
+#             if file.type == "application/zip":
+#                 with zipfile.ZipFile(file, "r") as z:
+#                     z.extractall(context_path)
+#             else:
+#                 bytes_data = uploaded_file.read()
+#                 file_name = os.path.join(context_path, uploaded_file.name)
+#                 with open(file_name, "wb") as f:
+#                     f.write(bytes_data)
+
+#     return os.path.join(context_path, uploaded_file.name)
+#     # return context_path
+
+
+def dump_file_to_disk(uploaded_file, context_path):
+    """writing the file from RAM to the current directory on disk"""
+    bytes_data = uploaded_file.read()
+    file_name = os.path.join(context_path, uploaded_file.name)
+    with open(file_name, "wb") as f:
+        f.write(bytes_data)
+    return file_name
+
+
+def dump_files_to_disk(uploaded_files, context_path="./context"):
     if not os.path.exists(context_path):
         os.mkdir(context_path)
-    if len(uploaded_file) > 0:
-        for file in uploaded_file:
-            # If zip file, extract contents
-            if file.type == "application/zip":
-                with zipfile.ZipFile(file, "r") as z:
-                    z.extractall(context_path)
-            else:
-                bytes_data = uploaded_file.read()
-                file_name = os.path.join(context_path, uploaded_file.name)
-                with open(file_name, "wb") as f:
-                    f.write(bytes_data)
-                
-    return os.path.join(context_path, uploaded_file.name)
-    # return context_path
+    file_list = []
+    if len(uploaded_files) > 0:
+        for uploaded_file in uploaded_files:
+            file_name = dump_file_to_disk(uploaded_file, context_path)
+            file_list.append(file_name)
+    return file_list
 
 
 def get_chunks_with_context_data(uploaded_file):
-    directory_path = dump_files_to_disk(uploaded_file)
-    txt_files = glob.glob(f"{directory_path}/*")
+    file_list = dump_files_to_disk(uploaded_file)
 
     chunks_with_doc_type = []
-    for txt_file in txt_files:
+    for txt_file in file_list:
         file_name = os.path.splitext(os.path.basename(txt_file))[
             0
         ]  # get file name without extension
