@@ -1,17 +1,15 @@
-import glob
 import os
-import zipfile
 
-import langchain
 import streamlit as st
 import tiktoken
 from langchain.chains import RetrievalQA
 from langchain.chat_models import AzureChatOpenAI
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.globals import set_debug
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.globals import set_debug
+from langchain.vectorstores import Chroma
 
 set_debug(True)
 
