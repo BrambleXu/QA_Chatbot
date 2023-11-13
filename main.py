@@ -300,7 +300,9 @@ def dump_files_to_disk(uploaded_file, context_path="./context"):
                 file_name = os.path.join(context_path, uploaded_file.name)
                 with open(file_name, "wb") as f:
                     f.write(bytes_data)
-    return context_path
+                
+    return os.path.join(context_path, uploaded_file.name)
+    # return context_path
 
 
 def get_chunks_with_context_data(uploaded_file):
