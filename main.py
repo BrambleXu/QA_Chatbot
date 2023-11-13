@@ -121,7 +121,7 @@ def ask_and_get_answer(vector_store, q, k=3):
         chain_type_kwargs={"prompt": prompt},
     )
 
-    answer = chain.run(q)
+    answer = chain(q)
     return answer
 
 
@@ -262,12 +262,12 @@ def dump_files_to_disk(uploaded_files, context_path="./context"):
 
 def get_chunks_with_context_data(uploaded_file):
     file_list = dump_files_to_disk(uploaded_file)
+    print(file_list)
 
     chunks_with_doc_type = []
     for txt_file in file_list:
-        file_name = os.path.splitext(os.path.basename(txt_file))[
-            0
-        ]  # get file name without extension
+        # get file name without extension
+        file_name = os.path.splitext(os.path.basename(txt_file))[0]
         with open(txt_file, "r") as file:
             file_content = file.read()
             chunked_documents = custom_chunk_data(file_name, file_content)
@@ -277,7 +277,6 @@ def get_chunks_with_context_data(uploaded_file):
 
 
 if __name__ == "__main__":
-
     # # loading the OpenAI api key from .env
     # load_dotenv(find_dotenv(), override=True)
     cs_info = ""
@@ -308,8 +307,8 @@ if __name__ == "__main__":
 
         # file uploader widget
         uploaded_file_context = st.file_uploader(
-            "Upload a zip file:",
-            type=["docx", "txt", "pdf"],
+            "Upload multiple files:",
+            type=["txt"],
             accept_multiple_files=True,
         )
 
@@ -342,11 +341,12 @@ if __name__ == "__main__":
 
         if uploaded_file_context and add_data:  # if the user browsed a file
             with st.spinner("Reading, chunking and embedding file ..."):
-
                 # read txt file from uploaded file
                 if uploaded_file_cs_info and uploaded_file_cs_lps:
                     cs_info = read_upload_file(uploaded_file_cs_info)
+                    print(cs_info)
                     cs_lps = read_upload_file(uploaded_file_cs_lps)
+                    print(cs_lps)
 
                 # # writing the file from RAM to the current directory on disk
                 # bytes_data = uploaded_file.read()
@@ -367,6 +367,8 @@ if __name__ == "__main__":
                 vector_store = create_embeddings(chunks)
 
                 # saving the vector store in the streamlit session state (to be persistent between reruns)
+                st.session_state.cs_info = cs_info
+                st.session_state.cs_lps = cs_lps
                 st.session_state.vs = vector_store
                 st.success("File uploaded, chunked and embedded successfully.")
 
@@ -378,15 +380,26 @@ if __name__ == "__main__":
         ):  # if there's the vector store (user uploaded, split and embedded a file)
             vector_store = st.session_state.vs
             st.write(f"k: {k}")
+            cs_info = st.session_state.cs_info
+            cs_lps = st.session_state.cs_lps
+
             if cs_info and cs_lps:
+                print("run with custom input")
                 answer = ask_and_get_answer_with_custom_input(
                     vector_store, q, cs_info, cs_lps, k
                 )
             else:
+                print("run with no custom input")
                 answer = ask_and_get_answer(vector_store, q, k)
 
+            answer_string = answer["result"]
+            source_string = f"\n{'-' * 50} \n"
+            for i, page in enumerate(answer["source_documents"]):
+                source_string += f'Chunk {i+1}: {page.metadata["source"]}\n{page.page_content} \n {"-" * 50} \n'
+            output = answer_string + source_string
+
             # text area widget for the LLM answer
-            st.text_area("LLM Answer: ", value=answer)
+            st.text_area("LLM Answer: ", value=output, height=400)
 
             st.divider()
 
@@ -395,7 +408,7 @@ if __name__ == "__main__":
                 st.session_state.history = ""
 
             # the current question and answer
-            value = f"Q: {q} \nA: {answer}"
+            value = f"Q: {q} \nA: {output}"
 
             st.session_state.history = (
                 f'{value} \n {"-" * 100} \n {st.session_state.history}'
