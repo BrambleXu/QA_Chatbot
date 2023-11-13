@@ -2,6 +2,7 @@ import glob
 import os
 import zipfile
 
+import langchain
 import streamlit as st
 import tiktoken
 from langchain.chains import RetrievalQA
@@ -11,6 +12,8 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
+
+langchain.debug = True
 
 # loading from streamlit secrets
 os.environ["OPENAI_API_TYPE"] = st.secrets["OPENAI_API_TYPE"]
@@ -121,72 +124,6 @@ def ask_and_get_answer(vector_store, q, k=3):
     )
 
     answer = chain.run(q)
-    return answer
-
-
-def ask_and_get_answer_with_custom_input(vector_store, q, cs_info, cs_lps, k=3):
-    """ask_and_get_answer_with_custom_input
-
-    Args:
-        vector_store (_type_): _description_
-        q (_type_): _description_
-        cs_info (_type_): customer inforamtion
-        cs_lps (_type_): customer life plan simulation
-        k (int, optional): _description_. Defaults to 3.
-
-    Returns:
-        _type_: _description_
-    """
-
-    template = """
-        - 指示: 君がファイナンシャルプランナー。提供された「カスタマー情報」、「ライフプランシミュレーション結果」、「コンテキスト」を参考し、カスタマーの質問を回答する。回答は詳しくしてください。注意点として、以下の制約条件をしたかう
-        - 制約条件: 回答するとき、具体的な保険会社と保険商品を推薦しない。答えがわからない場合は単に「わかりません」と発言し、無理に回答を作ろうとしない
-        - カスタマー情報:
-        ------
-        {cs_info}
-        ------
-        - ライフプランシミュレーション結果:
-        ------
-        {cs_lps}
-        ------
-        - コンテキスト:
-        ------
-        {context}
-        ------
-        - 入力質問: {question}
-        - 出力指示: 日本語で答えなさい
-        """
-
-    prompt = PromptTemplate(
-        input_variables=["context", "question"],
-        template=template,
-        partial_variables={"cs_info": cs_info, "cs_lps": cs_lps},
-    )
-
-    # llm = ChatOpenAI(model='gpt-3.5-turbo', temperature=1)
-    llm = AzureChatOpenAI(
-        client=None,
-        # deployment_name="gpt-35-turbo",
-        openai_api_type=os.environ["OPENAI_API_TYPE"],
-        openai_api_base=os.environ["OPENAI_API_BASE"],
-        openai_api_key=os.environ["OPENAI_API_KEY"],
-        openai_api_version=os.environ["OPENAI_API_VERSION"],
-        deployment_name=os.environ["DEPLOYMENT_NAME"],
-        temperature=1,
-        request_timeout=180,
-    )
-    retriever = vector_store.as_retriever(
-        search_type="similarity", search_kwargs={"k": k}
-    )
-    chain = RetrievalQA.from_chain_type(
-        llm=llm,
-        chain_type="stuff",
-        retriever=retriever,
-        chain_type_kwargs={"prompt": prompt},
-        return_source_documents=True,
-    )
-
-    answer = chain(q)
     return answer
 
 
@@ -374,7 +311,7 @@ if __name__ == "__main__":
         # file uploader widget
         uploaded_file_context = st.file_uploader(
             "Upload a zip file:",
-            type=["zip", "docx", "txt", "pdf"],
+            type=["docx", "txt", "pdf"],
             accept_multiple_files=True,
         )
 
