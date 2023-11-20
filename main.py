@@ -37,22 +37,22 @@ def ask_and_get_answer_with_custom_input(vector_store, q, cs_info, cs_lps, k=3):
     """
 
     template = """
-        - 指示: 君がファイナンシャルプランナー。提供された「カスタマー情報」、「ライフプランシミュレーション結果」、「コンテキスト」を参考し、カスタマーの質問を回答する。回答は詳しくしてください。注意点として、以下の制約条件をしたかう
-        - 制約条件: 回答するとき、具体的な保険会社と保険商品を推薦しない。答えがわからない場合は単に「わかりません」と発言し、無理に回答を作ろうとしない
-        - カスタマー情報:
+        - Instructions: You are a chatbot. Answer the user's question with context. Please adhere to the following constraints:
+        - Constraint: Do not recommend any specific  products in your answers. If you don't know the answer, simply state, "I don't know," and do not attempt to create an answer forcibly.
+        - user_input_context1:
         ------
-        {cs_info}
+        {user_input_context1}
         ------
-        - ライフプランシミュレーション結果:
+        - user_input_context2:
         ------
-        {cs_lps}
+        {user_input_context2}
         ------
-        - コンテキスト:
+        - context:
         ------
         {context}
         ------
-        - 入力質問: {question}
-        - 出力指示: 日本語で答えなさい
+        - Input Question: {question}
+        - Output Instruction: Answer in English.
         """
 
     prompt = PromptTemplate(
@@ -314,12 +314,12 @@ if __name__ == "__main__":
 
         # file uploader widget
         uploaded_file_cs_info = st.file_uploader(
-            "Upload a file about customer information:", type=["txt"]
+            "Upload a file as user input context 1:", type=["txt"]
         )
 
         # file uploader widget
         uploaded_file_cs_lps = st.file_uploader(
-            "Upload a file about customer life plan simulation result:", type=["txt"]
+            "Upload a file as user input context 2:", type=["txt"]
         )
 
         # chunk size number widget
